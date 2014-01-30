@@ -57,7 +57,7 @@ describe Celluloid::JeroMQ do
       expect { Celluloid::JeroMQ.context }.to raise_error(Celluloid::JeroMQ::UninitializedError)
     end
 
-    xit "raises an error when trying to access context after it is terminated" do
+    it "raises an error when trying to access context after it is terminated" do
       Celluloid::JeroMQ.terminate
       expect { Celluloid::JeroMQ.context }.to raise_error(Celluloid::JeroMQ::UninitializedError)
       Celluloid::JeroMQ.init
