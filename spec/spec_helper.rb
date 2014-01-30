@@ -2,7 +2,6 @@ require 'coveralls'
 Coveralls.wear!
 
 require 'bundler/setup'
-require 'ffi-rzmq'
 require 'celluloid/jeromq'
 
 logfile = File.open(File.expand_path("../../log/test.log", __FILE__), 'a')

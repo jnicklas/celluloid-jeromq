@@ -12,13 +12,13 @@ end
 
 describe Celluloid::JeroMQ do
   before do
-    @context = ::ZMQ::Context.new(1)
+    @context = Celluloid::JeroMQ::ZMQ.context(1)
     @sockets = []
   end
 
   after do
     @sockets.each(&:close)
-    @context.terminate
+    @context.term
   end
 
   let(:ports) { JEROMQ_PORTS }
@@ -36,15 +36,13 @@ describe Celluloid::JeroMQ do
   end
 
   describe ".init" do
-    xit "inits a JeroMQ context", :no_init do
+    it "inits a JeroMQ context", :no_init do
       Celluloid::JeroMQ.init
-      server = bind(Celluloid::JeroMQ.context.socket(::ZMQ::REQ))
-      client = connect(Celluloid::JeroMQ.context.socket(::ZMQ::REP))
+      server = bind(Celluloid::JeroMQ.context.socket(Celluloid::JeroMQ::ZMQ::REQ))
+      client = connect(Celluloid::JeroMQ.context.socket(Celluloid::JeroMQ::ZMQ::REP))
 
-      server.send_string("hello world")
-      message = ""
-      client.recv_string(message)
-      message.should eq("hello world")
+      server.send("hello world")
+      client.recv_str.should eq("hello world")
     end
 
     it "can set JeroMQ context manually", :no_init do
@@ -92,21 +90,21 @@ describe Celluloid::JeroMQ do
     end
 
     it "receives messages" do
-      server = bind(@context.socket(::ZMQ::REQ))
+      server = bind(@context.socket(Celluloid::JeroMQ::ZMQ::REQ))
       client = actor.new(ports[0])
 
-      server.send_string("hello world")
+      server.send("hello world")
       result = client.fetch
       result.should eq("hello world")
     end
 
     it "suspends actor while waiting for message" do
-      server = bind(@context.socket(::ZMQ::REQ))
+      server = bind(@context.socket(Celluloid::JeroMQ::ZMQ::REQ))
       client = actor.new(ports[0])
 
       result = client.future.fetch
       client.say_hi.should eq("Hi!")
-      server.send_string("hello world")
+      server.send("hello world")
       result.value.should eq("hello world")
     end
   end
