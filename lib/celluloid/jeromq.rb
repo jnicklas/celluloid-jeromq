@@ -1,15 +1,13 @@
-require 'ffi-rzmq'
-
 require 'celluloid'
-require 'celluloid/zmq/mailbox'
-require 'celluloid/zmq/reactor'
-require 'celluloid/zmq/sockets'
-require 'celluloid/zmq/version'
-require 'celluloid/zmq/waker'
+require 'celluloid/jeromq/mailbox'
+require 'celluloid/jeromq/reactor'
+require 'celluloid/jeromq/sockets'
+require 'celluloid/jeromq/version'
+require 'celluloid/jeromq/waker'
 
 module Celluloid
   # Actors which run alongside 0MQ sockets
-  module ZMQ
+  module JeroMQ
     UninitializedError = Class.new StandardError
 
     class << self
@@ -18,7 +16,7 @@ module Celluloid
       # Included hook to pull in Celluloid
       def included(klass)
         klass.send :include, ::Celluloid
-        klass.mailbox_class Celluloid::ZMQ::Mailbox
+        klass.mailbox_class Celluloid::JeroMQ::Mailbox
       end
 
       # Obtain a 0MQ context
@@ -28,7 +26,7 @@ module Celluloid
       end
 
       def context
-        raise UninitializedError, "you must initialize Celluloid::ZMQ by calling Celluloid::ZMQ.init" unless @context
+        raise UninitializedError, "you must initialize Celluloid::JeroMQ by calling Celluloid::ZMQ.init" unless @context
         @context
       end
 
@@ -38,14 +36,14 @@ module Celluloid
       end
     end
 
-    # Is this a Celluloid::ZMQ evented actor?
+    # Is this a Celluloid::JeroMQ evented actor?
     def self.evented?
       actor = Thread.current[:celluloid_actor]
-      actor.mailbox.is_a?(Celluloid::ZMQ::Mailbox)
+      actor.mailbox.is_a?(Celluloid::JeroMQ::Mailbox)
     end
 
     def wait_readable(socket)
-      if ZMQ.evented?
+      if JeroMQ.evented?
         mailbox = Thread.current[:celluloid_mailbox]
         mailbox.reactor.wait_readable(socket)
       else
@@ -56,7 +54,7 @@ module Celluloid
     module_function :wait_readable
 
     def wait_writable(socket)
-      if ZMQ.evented?
+      if JeroMQ.evented?
         mailbox = Thread.current[:celluloid_mailbox]
         mailbox.reactor.wait_writable(socket)
       else

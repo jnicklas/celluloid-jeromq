@@ -1,5 +1,5 @@
 module Celluloid
-  module ZMQ
+  module JeroMQ
     # React to incoming 0MQ and Celluloid events. This is kinda sorta supposed
     # to resemble the Reactor design pattern.
     class Reactor
@@ -22,16 +22,16 @@ module Celluloid
 
       # Wait for the given ZMQ socket to become readable
       def wait_readable(socket)
-        monitor_zmq socket, @readers, ::ZMQ::POLLIN
+        monitor_jeromq socket, @readers, ::ZMQ::POLLIN
       end
 
       # Wait for the given ZMQ socket to become writable
       def wait_writable(socket)
-        monitor_zmq socket, @writers, ::ZMQ::POLLOUT
+        monitor_jeromq socket, @writers, ::ZMQ::POLLOUT
       end
 
       # Monitor the given ZMQ socket with the given options
-      def monitor_zmq(socket, set, type)
+      def monitor_jeromq(socket, set, type)
         if set.has_key? socket
           raise ArgumentError, "another method is already waiting on #{socket.inspect}"
         else
@@ -40,7 +40,7 @@ module Celluloid
 
         @poller.register socket, type
 
-        Task.suspend :zmqwait
+        Task.suspend :jeromqwait
         socket
       end
 
@@ -69,7 +69,7 @@ module Celluloid
             if task
               task.resume
             else
-              Celluloid::Logger.debug "ZMQ error: got read event without associated reader"
+              Celluloid::Logger.debug "JeroMQ error: got read event without associated reader"
             end
           end
         end
@@ -81,7 +81,7 @@ module Celluloid
           if task
             task.resume
           else
-            Celluloid::Logger.debug "ZMQ error: got write event without associated reader"
+            Celluloid::Logger.debug "JeroMQ error: got write event without associated reader"
           end
         end
       end

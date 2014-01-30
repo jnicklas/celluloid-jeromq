@@ -1,9 +1,9 @@
 module Celluloid
-  module ZMQ
+  module JeroMQ
     class Socket
       # Create a new socket
       def initialize(type)
-        @socket = Celluloid::ZMQ.context.socket ::ZMQ.const_get(type.to_s.upcase)
+        @socket = Celluloid::JeroMQ.context.socket ::ZMQ.const_get(type.to_s.upcase)
         @linger = 0
       end
       attr_reader :linger
@@ -46,7 +46,7 @@ module Celluloid
         @socket.close
       end
 
-      # Hide ffi-rzmq internals
+      # Hide ffi-rjeromq internals
       alias_method :inspect, :to_s
     end
 
@@ -67,7 +67,7 @@ module Celluloid
 
       # Read a message from the socket
       def read(buffer = '')
-        ZMQ.wait_readable(@socket) if ZMQ.evented?
+        JeroMQ.wait_readable(@socket) if JeroMQ.evented?
 
         unless ::ZMQ::Util.resultcode_ok? @socket.recv_string buffer
           raise IOError, "error receiving ZMQ string: #{::ZMQ::Util.error_string}"

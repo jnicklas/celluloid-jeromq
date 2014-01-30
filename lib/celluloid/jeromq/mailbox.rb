@@ -1,6 +1,6 @@
 module Celluloid
-  module ZMQ
-    # Replacement mailbox for Celluloid::ZMQ actors
+  module JeroMQ
+    # Replacement mailbox for Celluloid::JeroMQ actors
     class Mailbox < Celluloid::EventedMailbox
       def initialize
         super(Reactor)

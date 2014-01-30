@@ -1,17 +1,17 @@
 module Celluloid
-  module ZMQ
+  module JeroMQ
     # You can't wake the dead
     DeadWakerError = Class.new IOError
 
     # Wakes up sleepy threads so that they can check their mailbox
-    # Works like a ConditionVariable, except it's implemented as a ZMQ socket
-    # so that it can be multiplexed alongside other ZMQ sockets
+    # Works like a ConditionVariable, except it's implemented as a JeroMQ socket
+    # so that it can be multiplexed alongside other JeroMQ sockets
     class Waker
       PAYLOAD = "\0" # the payload doesn't matter, it's just a signal
 
       def initialize
-        @sender   = ZMQ.context.socket(::ZMQ::PAIR)
-        @receiver = ZMQ.context.socket(::ZMQ::PAIR)
+        @sender   = JeroMQ.context.socket(::ZMQ::PAIR)
+        @receiver = JeroMQ.context.socket(::ZMQ::PAIR)
 
         @addr = "inproc://waker-#{object_id}"
         @sender.bind @addr
