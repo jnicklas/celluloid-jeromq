@@ -48,8 +48,9 @@ describe Celluloid::JeroMQ do
     end
 
     it "can set JeroMQ context manually", :no_init do
-      Celluloid::JeroMQ.context = @context
-      Celluloid::JeroMQ.context.should eq(@context)
+      context = Celluloid::JeroMQ::ZMQ.context(1)
+      Celluloid::JeroMQ.context = context
+      Celluloid::JeroMQ.context.should eq(context)
     end
 
     it "raises an error when trying to access context and it isn't initialized", :no_init do

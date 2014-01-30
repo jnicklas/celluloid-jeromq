@@ -10,24 +10,22 @@ module Celluloid
 
       def initialize
         @waker = Waker.new
-        @poller = ::ZMQ::Poller.new
+        @poller = JeroMQ.context.poller
         @readers = {}
         @writers = {}
+        @indexes = {}
 
-        rc = @poller.register @waker.socket, ::ZMQ::POLLIN
-        unless ::ZMQ::Util.resultcode_ok? rc
-          raise "0MQ poll error: #{::ZMQ::Util.error_string}"
-        end
+        @indexes[@waker.socket] = @poller.register @waker.socket, ZMQ::Poller::POLLIN
       end
 
       # Wait for the given ZMQ socket to become readable
       def wait_readable(socket)
-        monitor_jeromq socket, @readers, ::ZMQ::POLLIN
+        monitor_jeromq socket, @readers, ZMQ::Poller::POLLIN
       end
 
       # Wait for the given ZMQ socket to become writable
       def wait_writable(socket)
-        monitor_jeromq socket, @writers, ::ZMQ::POLLOUT
+        monitor_jeromq socket, @writers, ZMQ::Poller::POLLOUT
       end
 
       # Monitor the given ZMQ socket with the given options
@@ -38,7 +36,7 @@ module Celluloid
           set[socket] = Task.current
         end
 
-        @poller.register socket, type
+        @indexes[socket] = @poller.register socket, type
 
         Task.suspend :jeromqwait
         socket
@@ -50,21 +48,18 @@ module Celluloid
         if timeout
           timeout *= 1000 # Poller uses millisecond increments
         else
-          timeout = :blocking
+          timeout = -1
         end
 
-        rc = @poller.poll(timeout)
+        @poller.poll(timeout)
 
-        unless ::ZMQ::Util.resultcode_ok? rc
-          raise IOError, "0MQ poll error: #{::ZMQ::Util.error_string}"
-        end
-
-        @poller.readables.each do |sock|
+        @indexes.select { |socket, index| @poller.pollin(index) }.each do |sock, index|
           if sock == @waker.socket
             @waker.wait
           else
             task = @readers.delete sock
-            @poller.deregister sock, ::ZMQ::POLLIN
+            @poller.unregister sock
+            @indexes.delete(sock)
 
             if task
               task.resume
@@ -74,9 +69,10 @@ module Celluloid
           end
         end
 
-        @poller.writables.each do |sock|
+        @indexes.select { |socket, index| @poller.pollout(index) }.each do |sock, index|
           task = @writers.delete sock
-          @poller.deregister sock, ::ZMQ::POLLOUT
+          @poller.unregister sock
+          @indexes.delete(sock)
 
           if task
             task.resume

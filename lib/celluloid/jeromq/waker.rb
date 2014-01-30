@@ -10,8 +10,8 @@ module Celluloid
       PAYLOAD = "\0" # the payload doesn't matter, it's just a signal
 
       def initialize
-        @sender   = JeroMQ.context.socket(::ZMQ::PAIR)
-        @receiver = JeroMQ.context.socket(::ZMQ::PAIR)
+        @sender   = JeroMQ.context.socket(ZMQ::PAIR)
+        @receiver = JeroMQ.context.socket(ZMQ::PAIR)
 
         @addr = "inproc://waker-#{object_id}"
         @sender.bind @addr
@@ -23,10 +23,10 @@ module Celluloid
       # Wakes up the thread that is waiting for this Waker
       def signal
         @sender_lock.synchronize do
-          unless ::ZMQ::Util.resultcode_ok? @sender.send_string PAYLOAD
-            raise DeadWakerError, "error sending 0MQ message: #{::ZMQ::Util.error_string}"
-          end
+          @sender.send PAYLOAD
         end
+      #rescue Ex
+        #raise DeadWakerError, "error sending 0MQ message: #{ZMQ::Util.error_string}"
       end
 
       # 0MQ socket to wait for messages on
@@ -36,11 +36,10 @@ module Celluloid
 
       # Wait for another thread to signal this Waker
       def wait
-        message = ''
-        rc = @receiver.recv_string message
+        message = @receiver.recv_str
 
-        unless ::ZMQ::Util.resultcode_ok? rc and message == PAYLOAD
-          raise DeadWakerError, "error receiving ZMQ string: #{::ZMQ::Util.error_string}"
+        unless message == PAYLOAD
+          raise DeadWakerError, "error receiving ZMQ string: #{ZMQ::Util.error_string}"
         end
       end
 

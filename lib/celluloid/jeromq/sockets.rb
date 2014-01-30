@@ -3,7 +3,7 @@ module Celluloid
     class Socket
       # Create a new socket
       def initialize(type)
-        @socket = Celluloid::JeroMQ.context.socket ::ZMQ.const_get(type.to_s.upcase)
+        @socket = Celluloid::JeroMQ.context.socket ZMQ.const_get(type.to_s.upcase)
         @linger = 0
       end
       attr_reader :linger
@@ -11,22 +11,17 @@ module Celluloid
       # Connect to the given 0MQ address
       # Address should be in the form: tcp://1.2.3.4:5678/
       def connect(addr)
-        unless ::ZMQ::Util.resultcode_ok? @socket.connect addr
-          raise IOError, "error connecting to #{addr}: #{::ZMQ::Util.error_string}"
-        end
+        @socket.connect(addr)
         true
       end
 
       def linger=(value)
         @linger = value || -1
-
-        unless ::ZMQ::Util.resultcode_ok? @socket.setsockopt(::ZMQ::LINGER, value)
-          raise IOError, "couldn't set linger: #{::ZMQ::Util.error_string}"
-        end
+        @socket.linger = linger
       end
 
       def identity=(value)
-        @socket.identity = value
+        @socket.identity = value.to_java_bytes
       end
 
       def identity
@@ -36,9 +31,7 @@ module Celluloid
       # Bind to the given 0MQ address
       # Address should be in the form: tcp://1.2.3.4:5678/
       def bind(addr)
-        unless ::ZMQ::Util.resultcode_ok? @socket.bind(addr)
-          raise IOError, "couldn't bind to #{addr}: #{::ZMQ::Util.error_string}"
-        end
+        @socket.bind(addr)
       end
 
       # Close the socket
@@ -66,13 +59,10 @@ module Celluloid
       end
 
       # Read a message from the socket
-      def read(buffer = '')
+      def read
         JeroMQ.wait_readable(@socket) if JeroMQ.evented?
 
-        unless ::ZMQ::Util.resultcode_ok? @socket.recv_string buffer
-          raise IOError, "error receiving ZMQ string: #{::ZMQ::Util.error_string}"
-        end
-        buffer
+        @socket.recv_str
       end
 
       # Multiparts message ?
@@ -83,10 +73,7 @@ module Celluloid
     module WritableSocket
       # Send a message to the socket
       def write(*messages)
-        unless ::ZMQ::Util.resultcode_ok? @socket.send_strings messages.flatten
-          raise IOError, "error sending 0MQ message: #{::ZMQ::Util.error_string}"
-        end
-
+        @socket.send_strings(messages.flatten)
         messages
       end
       alias_method :<<, :write
@@ -169,15 +156,11 @@ module Celluloid
       end
 
       def subscribe(topic)
-        unless ::ZMQ::Util.resultcode_ok? @socket.setsockopt(::ZMQ::SUBSCRIBE, topic)
-          raise IOError, "couldn't set subscribe: #{::ZMQ::Util.error_string}"
-        end
+        @socket.subscribe(topic.to_java_bytes)
       end
 
       def unsubscribe(topic)
-        unless ::ZMQ::Util.resultcode_ok? @socket.setsockopt(::ZMQ::UNSUBSCRIBE, topic)
-          raise IOError, "couldn't set unsubscribe: #{::ZMQ::Util.error_string}"
-        end
+        @socket.unsubscribe(topic.to_java_bytes)
       end
     end
   end
