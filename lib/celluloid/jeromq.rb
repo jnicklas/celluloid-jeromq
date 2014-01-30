@@ -29,7 +29,7 @@ module Celluloid
       end
 
       def context
-        raise UninitializedError, "you must initialize Celluloid::JeroMQ by calling Celluloid::ZMQ.init" unless @context
+        raise UninitializedError, "you must initialize Celluloid::JeroMQ by calling Celluloid::JeroMQ.init" unless @context
         @context
       end
 
