@@ -25,8 +25,6 @@ module Celluloid
         @sender_lock.synchronize do
           @sender.send PAYLOAD
         end
-      #rescue Ex
-        #raise DeadWakerError, "error sending 0MQ message: #{ZMQ::Util.error_string}"
       end
 
       # 0MQ socket to wait for messages on
@@ -37,10 +35,7 @@ module Celluloid
       # Wait for another thread to signal this Waker
       def wait
         message = @receiver.recv_str
-
-        unless message == PAYLOAD
-          raise DeadWakerError, "error receiving ZMQ string: #{ZMQ::Util.error_string}"
-        end
+        raise DeadWakerError, "error receiving ZMQ string" unless message == PAYLOAD
       end
 
       # Clean up the IO objects associated with this waker

@@ -39,7 +39,6 @@ module Celluloid
         @socket.close
       end
 
-      # Hide ffi-rjeromq internals
       alias_method :inspect, :to_s
     end
 
