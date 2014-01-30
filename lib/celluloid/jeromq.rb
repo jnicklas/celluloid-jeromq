@@ -1,4 +1,5 @@
 require 'celluloid'
+require 'celluloid/jeromq/jeromq.jar'
 require 'celluloid/jeromq/mailbox'
 require 'celluloid/jeromq/reactor'
 require 'celluloid/jeromq/sockets'
@@ -8,6 +9,8 @@ require 'celluloid/jeromq/waker'
 module Celluloid
   # Actors which run alongside 0MQ sockets
   module JeroMQ
+    ZMQ = org.zeromq::ZMQ
+
     UninitializedError = Class.new StandardError
 
     class << self
