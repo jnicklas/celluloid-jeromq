@@ -72,7 +72,9 @@ module Celluloid
     module WritableSocket
       # Send a message to the socket
       def write(*messages)
-        @socket.send_strings(messages.flatten)
+        messages.flatten.each do |message|
+          @socket.send(message)
+        end
         messages
       end
       alias_method :<<, :write

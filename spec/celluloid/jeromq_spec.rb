@@ -108,4 +108,50 @@ describe Celluloid::JeroMQ do
       result.value.should eq("hello world")
     end
   end
+
+  describe Celluloid::JeroMQ::ReqSocket do
+    let(:actor) do
+      Class.new do
+        include Celluloid::JeroMQ
+
+        finalizer :close_socket
+
+        def initialize(port)
+          @socket = Celluloid::JeroMQ::ReqSocket.new
+          @socket.connect("tcp://127.0.0.1:#{port}")
+        end
+
+        def say_hi
+          "Hi!"
+        end
+
+        def send(message)
+          @socket.write(message)
+          true
+        end
+
+        def close_socket
+          @socket.close
+        end
+      end
+    end
+
+    it "sends messages" do
+      client = bind(@context.socket(Celluloid::JeroMQ::ZMQ::REP))
+      server = actor.new(ports[0])
+
+      server.send("hello world")
+      client.recv_str.should eq("hello world")
+    end
+
+    it "suspends actor while waiting for message to be sent" do
+      client = bind(@context.socket(Celluloid::JeroMQ::ZMQ::REP))
+      server = actor.new(ports[0])
+
+      result = server.future.send("hello world")
+      server.say_hi.should eq("Hi!")
+      client.recv_str.should eq("hello world")
+      result.value.should be_true
+    end
+  end
 end
