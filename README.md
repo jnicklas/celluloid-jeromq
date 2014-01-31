@@ -7,7 +7,6 @@ that can interact with [0MQ sockets][0mq].  Underneath, it's built on the
 
 [0mq]: http://www.zeromq.org/
 [jeromq]: https://github.com/zeromq/jeromq
-[ffi-rzmq]: https://github.com/chuckremes/ffi-rzmq
 [dcell]: https://github.com/celluloid/dcell
 
 It provides different `Celluloid::JeroMQ::Socket` classes which can be
@@ -25,7 +24,7 @@ to the JRuby executable, or set the "JRUBY_OPTS=--1.9" environment variable.
 
 The following 0MQ socket types are supported (see [sockets.rb][socketsrb] for more info)
 
-[socketsrb]: https://github.com/celluloid/celluloid-zmq/blob/master/lib/celluloid/zmq/sockets.rb
+[socketsrb]: https://github.com/celluloid/celluloid-jeromq/blob/master/lib/celluloid/jeromq/sockets.rb
 
 * ReqSocket / RepSocket
 * PushSocket / PullSocket

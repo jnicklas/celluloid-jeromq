@@ -1,7 +1,7 @@
-require 'celluloid/zmq'
+require 'celluloid/jeromq'
 
 class PublishSubscribe
-  include Celluloid::ZMQ
+  include Celluloid::JeroMQ
 
   def run
     link = "tcp://127.0.0.1:5555"
