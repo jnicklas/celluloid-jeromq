@@ -73,7 +73,7 @@ module Celluloid
       # Send a message to the socket
       def write(*messages)
         messages.flatten.each do |message|
-          @socket.send(message)
+          @socket.send(message.to_s)
         end
         messages
       end
