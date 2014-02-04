@@ -10,8 +10,8 @@ module Celluloid
       PAYLOAD = "\0" # the payload doesn't matter, it's just a signal
 
       def initialize
-        @sender   = JeroMQ.context.socket(ZMQ::PAIR)
-        @receiver = JeroMQ.context.socket(ZMQ::PAIR)
+        @sender   = JeroMQ.open_socket(:pair)
+        @receiver = JeroMQ.open_socket(:pair)
 
         @addr = "inproc://waker-#{object_id}"
         @sender.bind @addr
@@ -40,8 +40,8 @@ module Celluloid
 
       # Clean up the IO objects associated with this waker
       def cleanup
-        @sender_lock.synchronize { @sender.close rescue nil }
-        @receiver.close rescue nil
+        @sender_lock.synchronize { JeroMQ.close_socket(@sender) rescue nil }
+        JeroMQ.close_socket(@receiver) rescue nil
         nil
       end
       alias_method :shutdown, :cleanup

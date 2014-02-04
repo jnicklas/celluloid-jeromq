@@ -3,7 +3,7 @@ module Celluloid
     class Socket
       # Create a new socket
       def initialize(type)
-        @socket = Celluloid::JeroMQ.context.socket ZMQ.const_get(type.to_s.upcase)
+        @socket = JeroMQ.open_socket(type)
         @linger = 0
       end
       attr_reader :linger
@@ -36,7 +36,7 @@ module Celluloid
 
       # Close the socket
       def close
-        @socket.close
+        JeroMQ.close_socket(@socket)
       end
 
       alias_method :inspect, :to_s

@@ -61,6 +61,18 @@ describe Celluloid::JeroMQ do
       Celluloid::JeroMQ.init
       Celluloid::JeroMQ.context.should_not be_nil
     end
+
+    it "terminates even when actor does not shut down socket" do
+      actor = Class.new do
+        include Celluloid::JeroMQ
+        def initialize(port)
+          @socket = Celluloid::JeroMQ::RepSocket.new
+          @socket.connect("tcp://127.0.0.1:#{port}")
+        end
+      end
+      actor.new(ports[0]).terminate
+      Celluloid::JeroMQ.terminate
+    end
   end
 
   describe Celluloid::JeroMQ::RepSocket do
