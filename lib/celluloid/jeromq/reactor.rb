@@ -13,9 +13,7 @@ module Celluloid
         @poller = JeroMQ.context.poller
         @readers = {}
         @writers = {}
-        @indexes = {}
-
-        @indexes[@waker.socket] = @poller.register @waker.socket, ZMQ::Poller::POLLIN
+        @poller.register @waker.socket, ZMQ::Poller::POLLIN
       end
 
       # Wait for the given ZMQ socket to become readable
@@ -36,7 +34,7 @@ module Celluloid
           set[socket] = Task.current
         end
 
-        @indexes[socket] = @poller.register socket, type
+        @poller.register socket, type
 
         Task.suspend :jeromqwait
         socket
@@ -53,13 +51,14 @@ module Celluloid
 
         @poller.poll(timeout)
 
-        @indexes.select { |socket, index| @poller.pollin(index) }.each do |sock, index|
+        items = @poller.size.times.map { |i| @poller.item(i) }.compact
+
+        items.select(&:readable?).map(&:socket).each do |sock|
           if sock == @waker.socket
             @waker.wait
           else
             task = @readers.delete sock
             @poller.unregister sock
-            @indexes.delete(sock)
 
             if task
               task.resume
@@ -69,10 +68,9 @@ module Celluloid
           end
         end
 
-        @indexes.select { |socket, index| @poller.pollout(index) }.each do |sock, index|
+        items.select(&:writable?).map(&:socket).each do |sock|
           task = @writers.delete sock
           @poller.unregister sock
-          @indexes.delete(sock)
 
           if task
             task.resume
